@@ -1,0 +1,14 @@
+{
+  "appId": "com.moshu.writer",
+  "appName": "墨枢",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false,
+    "backgroundColor": "#14161a",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "server": {
+    "iosScheme": "capacitor"
+  }
+}

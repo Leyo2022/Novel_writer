@@ -1,0 +1,25 @@
+node_modules/
+dist/
+build/
+*.log
+.mushu-local/
+
+# 本地密钥（含 DeepSeek 等 API Key），绝不入库
+.env
+.env.*
+!.env.example
+
+# 本地测试数据 / 打包产物 / IDE 配置
+.tmp-*/
+*.zip
+.trae/
+
+# 墨枢移动端服务：本地密钥与同步配置不入库
+deploy/mushu/.env
+deploy/mushu/sync.config.json
+deploy/mushu/data/
+
+# 参考用小说原文（第三方版权作品，不入库）
+docs/大奉/
+docs/父无敌/
+docs/赘婿/

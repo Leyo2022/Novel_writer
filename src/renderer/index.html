@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data: blob:" />
+    <title>墨枢</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- 自绘标题栏（兼作工作区顶栏） -->
+      <div id="titlebar">
+        <button id="menu-btn" title="菜单">≡</button>
+        <span id="brand">墨枢</span>
+        <span id="book-wrap" class="hidden">
+          <span id="titlebar-book" title="点击改书名">—</span>
+          <button id="btn-book-close" title="关闭作品">&#x2715;</button>
+        </span>
+        <span id="titlebar-chapter" class="dim hidden"></span>
+        <div class="tb-spacer"></div>
+        <div id="tb-actions" class="hidden">
+          <button id="btn-focus" title="专注模式 Ctrl+Shift+F">专注</button>
+          <button id="btn-outline" title="故事大纲 Ctrl+1">大纲</button>
+          <button id="btn-canvas" title="无限画布 Ctrl+3">画布</button>
+          <button id="btn-versions" title="版本历史 Ctrl+H">版本</button>
+          <button id="btn-folder" title="在文件管理器中打开作品目录">文件夹</button>
+        </div>
+        <button id="btn-settings" class="tb-icon" title="设置 Ctrl+,">&#x2699;</button>
+        <div id="win-controls">
+          <button id="win-min" title="最小化"><span class="glyph">&#x2500;</span></button>
+          <button id="win-max" title="最大化"><span class="glyph">&#x25A1;</span></button>
+          <button id="win-close" title="关闭"><span class="glyph">&#x2715;</span></button>
+        </div>
+      </div>
+
+      <!-- 欢迎页 -->
+      <section id="welcome" class="screen">
+        <div class="welcome-inner">
+          <h1>墨枢</h1>
+          <p class="tagline">个人创作工作台 · 让长篇不崩</p>
+          <div class="welcome-actions">
+            <button id="btn-new" class="primary">新建作品</button>
+            <button id="btn-import">导入 TXT</button>
+            <button id="btn-open">打开作品</button>
+          </div>
+          <div class="recent">
+            <h2>最近打开</h2>
+            <ul id="recent-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 工作区 -->
+      <section id="workspace" class="screen hidden">
+        <div id="body">
+          <!-- 左栏：常驻工作面板，对话 / 卡片 / 设定都在这里 -->
+          <aside id="sidebar">
+            <div class="rail-tabs">
+              <button id="tab-ai" class="rail-tab active" title="AI 对话">对话</button>
+              <button id="tab-cards" class="rail-tab" title="角色卡片">角色卡片</button>
+              <button id="tab-beats" class="rail-tab" title="剧情卡片">剧情卡片</button>
+              <button id="tab-cast" class="rail-tab" title="设定库">设定库</button>
+            </div>
+
+            <!-- AI 对话 -->
+            <section id="ai-panel" class="rail-pane">
+              <div class="rail-head">
+                <span class="name">AI 助手</span>
+                <span id="ai-context" class="dim"></span>
+              </div>
+              <div id="ai-log"></div>
+              <div id="ai-input-wrap">
+                <div id="ai-composer">
+                  <div id="ai-atts" class="hidden"></div>
+                  <textarea id="ai-input" rows="1" placeholder="想改哪里、想写什么，直接说…（可粘贴图片 / 拖入文件）"></textarea>
+                  <div id="ai-composer-bar">
+                    <button id="ai-attach" title="添加图片或文件">＋</button>
+                    <input id="ai-file" type="file" class="hidden" multiple accept="image/png,image/jpeg,image/webp,image/gif,.txt,.md,.markdown,.csv,.json" />
+                    <span class="ai-composer-tip">Enter 发送 · Shift+Enter 换行</span>
+                    <button id="ai-stop" class="hidden">停止</button>
+                    <button id="ai-send" class="primary">发送</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- 角色卡片：与无限画布共用一份数据 -->
+            <section id="card-panel" class="rail-pane hidden">
+              <div class="rail-head">
+                <span class="name">角色卡片</span>
+                <span id="card-count" class="dim"></span>
+              </div>
+              <div id="card-list" class="rail-list"></div>
+              <div class="rail-foot">
+                <button id="card-add">+ 角色卡片</button>
+                <button id="card-open-canvas">去画布</button>
+              </div>
+            </section>
+
+            <!-- 剧情卡片：故事线上的情节点 -->
+            <section id="beat-panel" class="rail-pane hidden">
+              <div class="rail-head">
+                <span class="name">剧情卡片</span>
+                <span id="beat-count" class="dim"></span>
+              </div>
+              <div id="beat-list" class="rail-list"></div>
+              <div class="rail-foot">
+                <button id="beat-add">+ 剧情卡片</button>
+                <button id="beat-open-canvas">去画布</button>
+              </div>
+            </section>
+
+            <!-- 设定库 -->
+            <section id="cast-pane" class="rail-pane hidden">
+              <div class="rail-head">
+                <span class="name">设定库</span>
+                <span id="cast-status" class="dim">就绪</span>
+              </div>
+              <div class="cast-tabs">
+                <button id="cast-tab-settings" class="active">设定</button>
+              </div>
+              <div id="cast-list"></div>
+              <div class="cast-actions">
+                <button id="cast-add">+ 新增</button>
+                <button id="cast-del">删除</button>
+              </div>
+              <div id="cast-form">
+                <label>名称</label>
+                <input id="cast-name" type="text" placeholder="如：江晚棠" />
+                <label>别名（逗号分隔）</label>
+                <input id="cast-aliases" type="text" placeholder="如：晚棠, 江小姐" />
+                <label>简介</label>
+                <textarea id="cast-desc" placeholder="角色 / 设定说明…"></textarea>
+              </div>
+            </section>
+          </aside>
+
+          <!-- 中栏：正文 / 大纲 / 画布 + 底部状态栏，状态栏只占中栏宽度 -->
+          <div id="center">
+            <main id="editor-pane">
+              <div id="editor-meta">
+                <input id="chapter-title" placeholder="章节标题" />
+                <select id="chapter-status">
+                  <option value="draft">草稿</option>
+                  <option value="checking">待检</option>
+                  <option value="published">已发</option>
+                </select>
+              </div>
+              <div id="find-bar" class="hidden">
+                <input id="find-input" type="text" placeholder="查找" />
+                <input id="find-replace" type="text" placeholder="替换为" />
+                <span id="find-count" class="dim"></span>
+                <button id="find-prev">上一个</button>
+                <button id="find-next">下一个</button>
+                <button id="find-do">替换</button>
+                <button id="find-all">全部替换</button>
+                <button id="find-close" class="icon" title="关闭">&#x2715;</button>
+              </div>
+              <div id="editor-wrap">
+                <div id="editor-highlight" class="editor-layer" aria-hidden="true"></div>
+                <textarea id="editor" spellcheck="false" placeholder="开始写吧…"></textarea>
+              </div>
+            </main>
+
+            <section id="canvas-pane" class="hidden">
+              <div id="canvas-main">
+                <div id="canvas-head">
+                  <div id="cv-crumbs" class="cv-crumbs" title="双击情节点可下钻到它自己的画布">
+                    <button class="cv-crumb current">无限画布</button>
+                  </div>
+                  <span id="canvas-status" class="dim">就绪</span>
+                  <span class="spacer"></span>
+                  <div id="canvas-modes">
+                    <button id="cv-mode-story" class="cv-mode-btn active" title="按故事线查看（情节点起伏）">故事线</button>
+                    <button id="cv-mode-graph" class="cv-mode-btn" title="按人物关系查看（知识图谱）">知识图谱</button>
+                  </div>
+                  <button id="canvas-analyze" title="用 AI 通读全书，识别人物与关系，预览后写入画布">AI 解析</button>
+                  <div id="canvas-tools">
+                    <button id="canvas-fit" title="缩放到可见全部内容">适应</button>
+                    <button id="canvas-zoom-out" title="缩小">&#x2212;</button>
+                    <span id="canvas-zoom-label">100%</span>
+                    <button id="canvas-zoom-in" title="放大">&#x2B;</button>
+                  </div>
+                  <button id="canvas-close">返回正文</button>
+                </div>
+                <!-- 图谱视图的二级工具条：只在知识图谱模式下出现，挂在画布顶部 -->
+                <div id="cv-graph-tools" class="hidden">
+                  <span class="cv-sub-label">图谱视图</span>
+                  <button id="cv-focus-chip" title="点选其他角色作为圆心">圆心：自动</button>
+                  <div id="cv-depths">
+                    <button id="cv-depth-1" class="cv-depth-btn" title="只看与圆心直接相关的人">一层</button>
+                    <button id="cv-depth-2" class="cv-depth-btn active" title="看圆心的一度与二度关系">二层</button>
+                    <button id="cv-depth-3" class="cv-depth-btn" title="看圆心的一至三度关系">三层</button>
+                    <button id="cv-depth-all" class="cv-depth-btn" title="不限层级，全部展开">全部</button>
+                  </div>
+                  <button id="cv-relayout" title="以圆心为中心重新排布">整理布局</button>
+                </div>
+                <div id="canvas-viewport">
+                  <div id="canvas-world">
+                    <svg id="canvas-svg" xmlns="http://www.w3.org/2000/svg" viewBox="-12000 -12000 24000 24000">
+                      <g id="canvas-svg-root"></g>
+                    </svg>
+                    <div id="canvas-cards"></div>
+                  </div>
+                  <div id="canvas-palette">
+                    <div id="pal-card" class="cv-pal-item" title="点击放到画布中央，或拖到画布上任意位置">
+                      <span class="cv-pal-icon">&#x25A3;</span>
+                      <span>角色卡片</span>
+                    </div>
+                    <div id="pal-point" class="cv-pal-item" title="点击接到故事线末尾，或拖到画布上指定位置与情绪高低">
+                      <span class="cv-pal-icon">&#x2726;</span>
+                      <span>情节点</span>
+                    </div>
+                  </div>
+                  <div id="canvas-hint" class="hidden"></div>
+                  <div id="cv-rel-panel" class="hidden"></div>
+                </div>
+              </div>
+              <aside id="canvas-detail">
+                <div id="canvas-detail-head" class="cv-detail-head"></div>
+                <div id="canvas-detail-body" class="cv-detail-body"></div>
+              </aside>
+            </section>
+
+            <!-- 故事大纲：中间区，与正文 / 画布互斥切换 -->
+            <section id="outline-pane" class="hidden">
+              <div id="outline-head">
+                <span class="name">故事大纲</span>
+                <span id="outline-status" class="dim">就绪</span>
+                <span class="spacer"></span>
+                <div id="outline-tools">
+                  <select id="outline-block" title="段落格式">
+                    <option value="p">正文</option>
+                    <option value="h1">标题 1</option>
+                    <option value="h2">标题 2</option>
+                    <option value="h3">标题 3</option>
+                    <option value="h4">标题 4</option>
+                  </select>
+                  <button id="outline-bold" title="加粗 Ctrl+B">加粗</button>
+                  <button id="outline-ul" title="无序列表">列表</button>
+                  <button id="outline-ol" title="有序列表">编号</button>
+                  <button id="outline-quote" title="引用">引用</button>
+                  <button id="outline-hr" title="分割线">分割线</button>
+                  <button id="outline-table" title="插入 2×2 表格">表格</button>
+                </div>
+                <button id="outline-close">返回正文</button>
+              </div>
+              <div
+                id="outline-body"
+                class="md-body"
+                contenteditable="true"
+                spellcheck="false"
+                data-placeholder="在这里写故事大纲…"
+              ></div>
+            </section>
+
+            <footer id="statusbar">
+              <span id="save-status">就绪</span>
+              <div id="zoom-ctrl">
+                <button id="zoom-out" title="缩小界面 Ctrl/⌘ + -">A-</button>
+                <button id="zoom-label" title="点击恢复 100%（Ctrl/⌘ + 0）">100%</button>
+                <button id="zoom-in" title="放大界面 Ctrl/⌘ + =">A+</button>
+              </div>
+              <span class="spacer"></span>
+              <span id="word-chapter"></span>
+              <span id="word-today"></span>
+              <span id="word-streak"></span>
+            </footer>
+          </div>
+
+          <button id="rail-right-open" class="hidden" title="展开目录侧栏">&#x2039;</button>
+
+          <!-- 右栏：目录树（可折叠）与版本历史 -->
+          <aside id="panel">
+            <div class="rail-tabs">
+              <button id="tab-tree" class="rail-tab active">目录</button>
+              <button id="tab-versions" class="rail-tab">版本</button>
+              <button id="rail-right-close" class="rail-tab icon" title="收起侧栏">&#x203A;</button>
+            </div>
+
+            <section id="tree-panel" class="rail-pane">
+              <div class="rail-head">
+                <span class="name">目录</span>
+                <span id="tree-stat" class="dim"></span>
+              </div>
+              <div id="tree-search-wrap">
+                <input id="tree-search" type="text" placeholder="搜索章节名或正文…" />
+                <button id="tree-search-clear" class="icon hidden" title="清空搜索">&#x2715;</button>
+              </div>
+              <div id="tree"></div>
+              <div id="tree-result" class="hidden"></div>
+              <div class="side-foot">
+                <button id="btn-new-volume">+ 卷</button>
+                <button id="btn-new-chapter">+ 章</button>
+              </div>
+            </section>
+
+            <section id="version-panel" class="rail-pane hidden">
+              <div class="rail-head">
+                <span class="name">版本历史</span>
+              </div>
+              <div id="version-list"></div>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <div id="overlay" class="hidden">
+      <div id="overlay-box"></div>
+    </div>
+
+    <div id="toast" class="hidden"></div>
+
+    <script src="markdown.js"></script>
+    <script src="app.js"></script>
+    <script src="ai.js"></script>
+  </body>
+</html>

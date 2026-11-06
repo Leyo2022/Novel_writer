@@ -1,0 +1,54 @@
+{
+  "name": "mushu",
+  "version": "0.1.0",
+  "private": true,
+  "description": "墨枢 MoShu - 个人创作工作台",
+  "author": "墨枢",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "smoke": "node scripts/smoke.js",
+    "check": "electron scripts/launch-check.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win nsis",
+    "build:mobile": "node scripts/build-mobile.js",
+    "check:mobile": "node scripts/check-mobile.js"
+  },
+  "build": {
+    "appId": "com.moshu.writer",
+    "productName": "墨枢",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "墨枢",
+      "artifactName": "${productName} Setup ${version}.exe",
+      "uninstallDisplayName": "墨枢 ${version}",
+      "deleteAppDataOnUninstall": false
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.24.2"
+  }
+}

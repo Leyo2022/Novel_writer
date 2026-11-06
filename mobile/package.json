@@ -1,0 +1,23 @@
+{
+  "name": "mushu-ipad",
+  "version": "0.1.0",
+  "private": true,
+  "description": "墨枢 iPad 版（Capacitor 包壳，界面与桌面端完全一致）",
+  "scripts": {
+    "add:ios": "cap add ios",
+    "sync:ios": "cap sync ios",
+    "open:ios": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/app": "^6.0.2",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/filesystem": "^6.0.2",
+    "@capacitor/keyboard": "^6.0.3",
+    "@capacitor/preferences": "^6.0.3",
+    "@capacitor/status-bar": "^6.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/ios": "^6.2.0"
+  }
+}

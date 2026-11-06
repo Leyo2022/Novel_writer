@@ -1,0 +1,10 @@
+{
+  "baseUrl": "https://mushu.sfangjie.cn",
+  "password": "与服务器 /opt/mushu/.env 里的 MUSHU_PASSWORD 一致",
+  "works": [
+    {
+      "name": "大奉无双",
+      "localDir": "C:\\Users\\OSD\\Documents\\墨枢作品\\大奉无双"
+    }
+  ]
+}

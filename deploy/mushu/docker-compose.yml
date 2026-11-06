@@ -1,0 +1,31 @@
+# 墨枢 · 移动端服务（/opt/mushu）
+#
+# 与 Web3d / LeyoSite 相同的接入方式：
+#   宿主 80/443 由 tmm-nginx 独占，这里不映射任何宿主端口，
+#   只加入外部网络 edge，由 tmm-nginx 按域名反代到 mushu-app:8787。
+#
+# 数据：./data 绑定挂载到容器的 DATA_DIR（服务器端的作品目录同步副本）。
+services:
+  app:
+    image: node:22-alpine
+    container_name: mushu-app
+    restart: unless-stopped
+    working_dir: /app
+    command: ["node", "server/server.js"]
+    env_file:
+      - ./.env
+    environment:
+      PORT: "8787"
+      DATA_DIR: /app/data
+    volumes:
+      - ./server:/app/server:ro
+      - ./web:/app/web:ro
+      - ./data:/app/data
+    networks:
+      edge:
+        aliases:
+          - mushu-app
+
+networks:
+  edge:
+    external: true

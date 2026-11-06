@@ -1,0 +1,334 @@
+/* iPad 端增量样式：只补触控 / 安全区 / 原生浮层，桌面端样式保持不变 */
+
+:root {
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --mushu-accent: #c8a25a;
+}
+
+html,
+body {
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+}
+
+body.is-ios {
+  -webkit-touch-callout: none;
+}
+
+body.is-ios textarea,
+body.is-ios input,
+body.is-ios select,
+body.is-ios [contenteditable='true'] {
+  -webkit-user-select: text;
+  user-select: text;
+  /* iOS 上小于 16px 会自动放大页面 */
+  font-size: max(16px, 1em);
+}
+
+/* 窗口控制在 iPad 上没有意义 */
+body.is-ios #win-controls {
+  display: none !important;
+}
+
+/* 没有系统的「文件管理器」，对应入口隐藏 */
+body.is-ios #btn-folder {
+  display: none !important;
+}
+
+/* 书名旁的关闭按钮在触屏上没有 hover，直接常显 */
+body.is-ios #btn-book-close {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* 状态栏贴着 Home Indicator */
+body.is-ios #statusbar {
+  padding-bottom: var(--safe-bottom);
+  height: calc(26px + var(--safe-bottom));
+  flex-basis: calc(26px + var(--safe-bottom));
+}
+
+/* 触控手势区 */
+body.is-ios #canvas-viewport,
+body.is-ios #canvas-palette,
+body.is-ios .cv-card,
+body.is-ios .cv-node-hit,
+body.is-ios .cv-link-hit {
+  touch-action: none;
+}
+
+body.is-ios {
+  touch-action: manipulation;
+}
+
+/* 竖屏窄宽度：把左右栏收窄一点 */
+body.mushu-narrow #sidebar {
+  width: 236px;
+  flex-basis: 236px;
+}
+
+body.mushu-narrow #panel {
+  width: 240px;
+  flex-basis: 240px;
+}
+
+/* ---------- 加载页 ---------- */
+
+#mushu-ios-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(120% 80% at 50% 30%, #1b1f26 0%, #101216 70%);
+  transition: opacity 0.24s ease;
+}
+
+#mushu-ios-loading.leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mushu-ios-loading-card {
+  text-align: center;
+}
+
+.mushu-ios-loading-logo {
+  font-size: 30px;
+  letter-spacing: 0.32em;
+  color: var(--mushu-accent);
+  margin-bottom: 16px;
+  padding-left: 0.32em;
+}
+
+.mushu-ios-loading-text {
+  color: #838b98;
+  font-size: 13px;
+}
+
+/* ---------- Toast ---------- */
+
+#mushu-ios-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(48px + var(--safe-bottom));
+  transform: translate(-50%, 12px);
+  max-width: min(78vw, 520px);
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: rgba(38, 42, 50, 0.96);
+  border: 1px solid #343a44;
+  color: #e6e8eb;
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 10000;
+}
+
+#mushu-ios-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ---------- 同步状态 ---------- */
+
+.mushu-ios-sync {
+  margin-left: auto;
+  color: #838b98;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mushu-ios-sync[data-tone='ok'] {
+  color: #7fae8f;
+}
+
+.mushu-ios-sync[data-tone='error'] {
+  color: #c9746f;
+}
+
+.mushu-ios-sync[data-tone='syncing'] {
+  color: var(--mushu-accent);
+}
+
+/* ---------- 浮层 / 弹层 ---------- */
+
+.mushu-ios-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(8, 9, 12, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.mushu-ios-sheet {
+  width: min(560px, 92vw);
+  max-height: 84vh;
+  overflow: auto;
+  background: #1d2128;
+  border: 1px solid #333944;
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  padding: 22px;
+  color: #d8dbe0;
+}
+
+.mushu-ios-sheet-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.mushu-ios-sheet-desc {
+  color: #838b98;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.mushu-ios-sheet-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.mushu-ios-btn {
+  padding: 9px 18px;
+  border-radius: 9px;
+  border: 1px solid #3a414c;
+  background: #262b33;
+  color: #d8dbe0;
+  font-size: 14px;
+}
+
+.mushu-ios-btn.primary {
+  background: var(--mushu-accent);
+  border-color: var(--mushu-accent);
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.mushu-ios-btn.ghost {
+  background: transparent;
+}
+
+/* 作品选择器 */
+
+.mushu-ios-work-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 52vh;
+  overflow: auto;
+}
+
+.mushu-ios-work {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #232830;
+  border: 1px solid #313844;
+}
+
+.mushu-ios-work-title {
+  font-size: 15px;
+  color: #e6e8eb;
+}
+
+.mushu-ios-work-path {
+  font-size: 11px;
+  color: #6f7784;
+}
+
+.mushu-ios-empty {
+  color: #838b98;
+  font-size: 13px;
+  padding: 18px 4px;
+}
+
+/* 菜单 */
+
+.mushu-ios-menu {
+  position: fixed;
+  z-index: 9500;
+  min-width: 190px;
+  padding: 6px;
+  background: #232830;
+  border: 1px solid #363d48;
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+}
+
+.mushu-ios-menu-item {
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #d8dbe0;
+}
+
+.mushu-ios-menu-item:active {
+  background: #2e353f;
+}
+
+.mushu-ios-menu-sep {
+  height: 1px;
+  margin: 5px 8px;
+  background: #333a45;
+}
+
+/* 首次连接向导 */
+
+.mushu-ios-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: #9aa2af;
+}
+
+.mushu-ios-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid #3a414c;
+  background: #15181d;
+  color: #e6e8eb;
+}
+
+.mushu-ios-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #9aa2af;
+}
+
+.mushu-ios-error {
+  min-height: 18px;
+  margin-top: 10px;
+  color: #d07d77;
+  font-size: 13px;
+}

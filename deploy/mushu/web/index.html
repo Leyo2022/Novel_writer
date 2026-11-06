@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#14161a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>墨枢 · 移动版</title>
+<style>
+  :root{
+    --bg:#14161a; --bg2:#1b1e24; --bg3:#22262e; --line:#2c313a;
+    --fg:#e6e8ec; --fg2:#9aa2ae; --accent:#c8a15a; --accent2:#e0bd76;
+    --danger:#e0605c; --ok:#5aa87a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--fg);
+    font:16px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    overscroll-behavior:none;
+  }
+  button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+  input,textarea{font:inherit;color:inherit}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#3a4049;border-radius:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+
+  .app{display:flex;flex-direction:column;height:100dvh}
+  header{
+    flex:0 0 auto; display:flex; align-items:center; gap:10px;
+    padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;
+    background:var(--bg2); border-bottom:1px solid var(--line);
+  }
+  header .back{width:32px;height:32px;display:grid;place-items:center;font-size:22px;color:var(--fg2);margin-left:-6px}
+  header h1{font-size:17px;margin:0;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  header .sub{font-size:12px;color:var(--fg2);font-weight:400}
+  main{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 0 max(12px,env(safe-area-inset-bottom))}
+  footer.tabs{
+    flex:0 0 auto; display:flex; background:var(--bg2); border-top:1px solid var(--line);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  footer.tabs button{flex:1;padding:9px 0 8px;text-align:center;color:var(--fg2);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:3px}
+  footer.tabs button .ic{font-size:19px;line-height:1}
+  footer.tabs button.on{color:var(--accent2)}
+
+  .pad{padding:0 14px}
+  .row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .row:active{background:var(--bg2)}
+  .row .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .meta{font-size:12px;color:var(--fg2);flex:0 0 auto}
+  .vol{font-size:12px;color:var(--fg2);padding:14px 14px 6px;letter-spacing:.04em}
+  .empty{color:var(--fg2);text-align:center;padding:56px 24px;font-size:14px}
+  .hitmark{color:var(--accent2)}
+  .hittext{font-size:13px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
+  /* 登录 */
+  .login{display:flex;flex-direction:column;justify-content:center;min-height:100dvh;padding:0 28px;gap:14px;max-width:420px;margin:0 auto}
+  .login h1{font-size:24px;margin:0 0 2px;letter-spacing:.08em}
+  .login p{color:var(--fg2);font-size:13px;margin:0 0 12px}
+  .login input{background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:13px 14px;width:100%;outline:none}
+  .login input:focus{border-color:var(--accent)}
+  .login button{background:var(--accent);color:#1a1408;font-weight:600;border-radius:10px;padding:13px}
+  .login .err{color:var(--danger);font-size:13px;min-height:18px}
+
+  /* 阅读/编辑 */
+  .docbar{display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--bg2);flex-wrap:wrap}
+  .docbar .sp{flex:1}
+  .chip{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;color:var(--fg2)}
+  .chip.on{color:var(--accent2);border-color:var(--accent)}
+  .chip.save{color:#1a1408;background:var(--accent);border-color:var(--accent);font-weight:600}
+  .saved{font-size:12px;color:var(--fg2)}
+  .saved.ok{color:var(--ok)}
+  .saved.err{color:var(--danger)}
+
+  textarea.editor{
+    width:100%;border:0;outline:none;resize:none;background:transparent;
+    padding:14px;min-height:calc(100dvh - 190px);line-height:1.9;font-size:17px;
+    font-family:inherit;
+  }
+  .preview{padding:6px 16px 40px;line-height:1.9}
+  .preview h1,.preview h2,.preview h3{line-height:1.4;margin:1.1em 0 .5em}
+  .preview h1{font-size:1.5em}.preview h2{font-size:1.28em}.preview h3{font-size:1.12em}
+  .preview p{margin:.6em 0}
+  .preview blockquote{margin:.7em 0;padding:.2em .9em;border-left:3px solid var(--accent);color:var(--fg2);background:var(--bg2)}
+  .preview ul,.preview ol{margin:.5em 0;padding-left:1.5em}
+  .preview li{margin:.25em 0}
+  .preview hr{border:0;border-top:1px solid var(--line);margin:1.3em 0}
+  .preview code{background:var(--bg3);padding:.1em .35em;border-radius:4px;font-size:.92em}
+  .preview table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.94em}
+  .preview th,.preview td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+  .preview th{background:var(--bg2)}
+  .wiz{outline:none;min-height:60vh}
+
+  /* 角色卡片 */
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 14px}
+  .card .nm{font-weight:600;font-size:16px}
+  .card .al{font-size:12px;color:var(--fg2);margin-top:2px}
+  .card .de{margin-top:8px;white-space:pre-wrap;font-size:14px;color:var(--fg)}
+  .card .ops{display:flex;gap:14px;margin-top:10px;font-size:13px;color:var(--fg2)}
+  .card .ops span{color:var(--accent2)}
+  .addbtn{margin:14px;display:block;width:calc(100% - 28px);background:var(--bg3);border:1px dashed var(--line);border-radius:12px;padding:13px;color:var(--accent2);font-size:14px}
+
+  .field{padding:6px 14px}
+  .field label{display:block;font-size:12px;color:var(--fg2);margin:8px 0 4px}
+  .field input,.field textarea{width:100%;background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:10px;outline:none}
+  .field textarea{min-height:110px;resize:vertical;line-height:1.7}
+  .field input:focus,.field textarea:focus{border-color:var(--accent)}
+  .sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:50}
+  .sheet .inner{background:var(--bg);width:100%;max-height:88dvh;overflow-y:auto;border-radius:16px 16px 0 0;padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
+  .sheet h3{margin:0;padding:16px 14px 4px;font-size:16px}
+  .sheet .act{display:flex;gap:10px;padding:14px}
+  .sheet .act button{flex:1;border-radius:10px;padding:12px;text-align:center;background:var(--bg3);border:1px solid var(--line)}
+  .sheet .act button.primary{background:var(--accent);color:#1a1408;font-weight:600;border-color:var(--accent)}
+  .sheet .act button.danger{color:var(--danger)}
+
+  .searchbar{padding:10px 14px;display:flex;gap:8px}
+  .searchbar input{flex:1;background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none}
+  .searchbar button{background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:0 14px;color:var(--fg2)}
+  .loading{color:var(--fg2);text-align:center;padding:24px;font-size:14px}
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+
+<script src="markdown.js"></script>
+<script>
+'use strict';
+const $ = (s, r) => (r || document).querySelector(s);
+const app = $('#app');
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+async function api(path, opts) {
+  const res = await fetch(path, Object.assign({ headers: { 'Content-Type': 'application/json' } }, opts || {}));
+  if (res.status === 401) { state.authed = false; renderLogin(); throw new Error('未登录'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+const getJSON = (p) => api(p);
+const sendJSON = (p, method, body) => api(p, { method, body: JSON.stringify(body) });
+
+const state = {
+  authed: false, works: [], work: null, tab: 'tree',
+  tree: null, doc: null, docDirty: false, preview: false, query: '', searchRes: null, loading: false,
+};
+let saveTimer = null;
+
+// ---------- 启动 ----------
+(async function boot() {
+  try {
+    const me = await getJSON('/api/me');
+    state.authed = !!me.authed;
+  } catch { state.authed = false; }
+  if (!state.authed) return renderLogin();
+  await enterApp();
+})();
+
+function renderLogin() {
+  document.title = '墨枢 · 登录';
+  app.innerHTML = `
+    <div class="login">
+      <h1>墨枢</h1>
+      <p>移动版 · 输入访问密码</p>
+      <input id="pw" type="password" placeholder="访问密码" autocomplete="current-password">
+      <button id="go">进入</button>
+      <div class="err" id="err"></div>
+    </div>`;
+  const submit = async () => {
+    const pw = $('#pw').value;
+    if (!pw) return;
+    $('#err').textContent = '';
+    try {
+      await sendJSON('/api/login', 'POST', { password: pw });
+      state.authed = true;
+      await enterApp();
+    } catch (e) { $('#err').textContent = e.message; }
+  };
+  $('#go').onclick = submit;
+  $('#pw').addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+}
+
+async function enterApp() {
+  const r = await getJSON('/api/works');
+  state.works = r.works || [];
+  if (!state.works.length) {
+    app.innerHTML = '<div class="empty">服务器上还没有作品。<br>先在电脑上运行同步脚本上传后再刷新。</div>';
+    return;
+  }
+  const saved = localStorage.getItem('mushu.work');
+  state.work = state.works.find((w) => w.name === saved) ? saved : state.works[0].name;
+  state.tab = 'tree';
+  await renderShell();
+}
+
+function workTitle() {
+  const w = state.works.find((x) => x.name === state.work);
+  return w ? w.title : state.work;
+}
+
+// ---------- 外壳 ----------
+async function renderShell() {
+  document.title = '墨枢 · ' + workTitle();
+  app.innerHTML = `
+    <header>
+      <div id="hleft"></div>
+      <h1 id="htitle"></h1>
+      <button id="hwork" class="sub">切换</button>
+    </header>
+    <main id="main"><div class="loading">加载中…</div></main>
+    <footer class="tabs" id="tabs">
+      ${tab('tree', '☰', '目录')}${tab('outline', '¶', '大纲')}${tab('cast', '☺', '角色')}${tab('search', '⌕', '搜索')}
+    </footer>`;
+  $('#tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-tab]');
+    if (b) switchTab(b.dataset.tab);
+  });
+  $('#hwork').onclick = openWorkPicker;
+  if (state.works.length <= 1) $('#hwork').style.display = 'none';
+  switchTab(state.tab);
+}
+const tab = (id, ic, label) => `<button data-tab="${id}" class="${state.tab === id ? 'on' : ''}"><span class="ic">${ic}</span>${label}</button>`;
+
+function setTabUI() {
+  $('#tabs').innerHTML = tab('tree', '☰', '目录') + tab('outline', '¶', '大纲') + tab('cast', '☺', '角色') + tab('search', '⌕', '搜索');
+}
+
+/** 二级页面左上角的「‹」返回目录 */
+function setBack() {
+  $('#hleft').innerHTML = '<button class="back" id="bk">‹</button>';
+  $('#bk').onclick = () => switchTab('tree');
+}
+
+function switchTab(t) {
+  syncDocFromDom();
+  if (state.docDirty) saveDoc(false);
+  state.tab = t;
+  state.doc = null;
+  setTabUI();
+  const h = $('#hleft'); h.innerHTML = '';
+  if (t === 'tree') { $('#htitle').innerHTML = esc(workTitle()); return loadTree(); }
+  if (t === 'outline') { $('#htitle').innerHTML = '故事大纲'; return loadDoc('outline'); }
+  if (t === 'cast') { setBack(); $('#htitle').innerHTML = '角色卡片'; return loadCast(); }
+  if (t === 'search') { setBack(); $('#htitle').innerHTML = '搜索'; return renderSearch(); }
+}
+
+function openWorkPicker() {
+  if (state.works.length <= 1) return;
+  const html = state.works.map((w) => `<div class="row" data-w="${esc(w.name)}"><div class="t">${esc(w.title)}</div></div>`).join('');
+  showSheet('切换作品', `<div>${html}</div>`, []);
+  $('.sheet').addEventListener('click', (e) => {
+    const r = e.target.closest('[data-w]');
+    if (r) { state.work = r.dataset.w; localStorage.setItem('mushu.work', state.work); closeSheet(); state.tab = 'tree'; renderShell(); }
+  });
+}
+
+// ---------- 目录 ----------
+async function loadTree() {
+  $('#main').innerHTML = '<div class="loading">加载目录…</div>';
+  try {
+    state.tree = await getJSON('/api/tree?work=' + encodeURIComponent(state.work));
+  } catch (e) { $('#main').innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+  const t = state.tree;
+  if (!t.volumes || !t.volumes.length) {
+    $('#main').innerHTML = '<div class="empty">还没有章节。<br>在电脑上新建章节并同步后即可在这里看到。</div>';
+    return;
+  }
+  let html = '';
+  for (const v of t.volumes) {
+    html += `<div class="vol">${esc(v.name)} · ${v.chapters.length} 章 · ${v.words} 字</div>`;
+    for (const c of v.chapters) {
+      html += `<div class="row" data-id="${esc(c.id)}"><div class="t">${esc(c.title)}</div><div class="meta">${c.words} 字</div></div>`;
+    }
+  }
+  $('#main').innerHTML = html;
+  $('#main').addEventListener('click', (e) => {
+    const r = e.target.closest('[data-id]');
+    if (r) openChapter(r.dataset.id);
+  });
+  $('#htitle').innerHTML = `${esc(workTitle())} <span class="sub">${t.totalWords} 字 · ${t.chapterCount} 章</span>`;
+}
+
+// ---------- 正文阅读/编辑 ----------
+async function openChapter(id) {
+  $('#main').innerHTML = '<div class="loading">加载章节…</div>';
+  let ch;
+  try { ch = await getJSON('/api/chapter?work=' + encodeURIComponent(state.work) + '&id=' + encodeURIComponent(id)); }
+  catch (e) { $('#main').innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+  state.doc = { kind: 'chapter', id, title: ch.meta.title || id, body: ch.body || '' };
+  renderDoc();
+}
+
+async function loadDoc(kind) {
+  state.tab = kind;
+  $('#main').innerHTML = '<div class="loading">加载…</div>';
+  try {
+    const r = await getJSON('/api/outline?work=' + encodeURIComponent(state.work));
+    state.doc = { kind: 'outline', title: '故事大纲', body: r.body || '' };
+    renderDoc();
+  } catch (e) { $('#main').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+function renderDoc() {
+  const d = state.doc;
+  state.preview = false;
+  $('#hleft').innerHTML = '<button class="back" id="bk">‹</button>';
+  $('#htitle').innerHTML = esc(d.title);
+  $('#bk').onclick = () => switchTab('tree');
+  renderDocBody();
+}
+
+function renderDocBody() {
+  const d = state.doc;
+  const tabsEl = $('#tabs');
+  tabsEl.innerHTML = `
+    <div class="docbar" style="flex:1;width:100%">
+      <button class="chip" id="pv">${state.preview ? '编辑' : '预览'}</button>
+      <span class="sp"></span>
+      <span class="saved" id="sv"></span>
+      <button class="chip save" id="save">保存</button>
+    </div>`;
+  $('#pv').onclick = () => { syncDocFromDom(); state.preview = !state.preview; renderDocBody(); };
+  $('#save').onclick = () => saveDoc(true);
+
+  if (state.preview) {
+    $('#main').innerHTML = `<div class="preview">${md(d.body)}</div>`;
+  } else if (d.kind === 'outline') {
+    // 大纲：所见即所得，全程不出现 Markdown 原始符号（与桌面端一致）
+    $('#main').innerHTML = `<div class="preview wiz" id="ed" contenteditable="true" spellcheck="false"></div>`;
+    const ed = $('#ed');
+    ed.innerHTML = md(d.body);
+    ed.addEventListener('input', () => { state.docDirty = true; markSaved('未保存'); scheduleSave(); });
+  } else {
+    $('#main').innerHTML = `<textarea class="editor" id="ed" spellcheck="false"></textarea>`;
+    const ed = $('#ed');
+    ed.value = d.body;
+    ed.addEventListener('input', () => { d.body = ed.value; state.docDirty = true; markSaved('未保存'); scheduleSave(); });
+    // 自动增高，避免内层滚动
+    const grow = () => { ed.style.height = 'auto'; ed.style.height = Math.max(ed.scrollHeight, 300) + 'px'; };
+    ed.addEventListener('input', grow); grow();
+  }
+}
+
+/** 大纲是所见即所得编辑，DOM 才是最新内容：保存/切走前先反向序列化回 Markdown */
+function syncDocFromDom() {
+  const d = state.doc;
+  if (!d || d.kind !== 'outline' || state.preview) return;
+  const ed = $('#ed');
+  if (ed) d.body = window.markdownFromDom(ed);
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveDoc(false), 1500);
+}
+
+function markSaved(text, cls) {
+  const el = $('#sv');
+  if (el) { el.textContent = text; el.className = 'saved ' + (cls || ''); }
+}
+
+async function saveDoc(explicit) {
+  if (!state.doc) return;
+  clearTimeout(saveTimer);
+  syncDocFromDom();
+  const d = state.doc;
+  try {
+    if (d.kind === 'chapter') await sendJSON('/api/chapter', 'PUT', { work: state.work, id: d.id, body: d.body });
+    else await sendJSON('/api/outline', 'PUT', { work: state.work, body: d.body });
+    state.docDirty = false;
+    markSaved('已保存', 'ok');
+  } catch (e) {
+    markSaved('保存失败：' + e.message, 'err');
+    if (explicit) alert('保存失败：' + e.message);
+  }
+}
+
+// ---------- 角色卡片 ----------
+async function loadCast() {
+  $('#main').innerHTML = '<div class="loading">加载角色…</div>';
+  let data;
+  try { data = await getJSON('/api/cast?work=' + encodeURIComponent(state.work)); }
+  catch (e) { $('#main').innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+  state.cast = data || { characters: [], settings: [] };
+  renderCast();
+}
+
+function renderCast() {
+  const list = state.cast.characters || [];
+  let html = '';
+  if (!list.length) html += '<div class="empty">还没有角色卡片。</div>';
+  html += list.map((c, i) => `
+    <div class="card" data-i="${i}">
+      <div class="nm">${esc(c.name)}</div>
+      ${(c.aliases && c.aliases.length) ? `<div class="al">${esc(c.aliases.join(' / '))}</div>` : ''}
+      ${c.desc ? `<div class="de">${esc(c.desc)}</div>` : ''}
+      <div class="ops"><span data-op="edit">编辑</span><span data-op="del">删除</span></div>
+    </div>`).join('');
+  html += '<button class="addbtn" id="add">＋ 新增角色</button>';
+  $('#main').innerHTML = html;
+  $('#add').onclick = () => editCard(-1);
+  $('#main').addEventListener('click', (e) => {
+    const card = e.target.closest('.card');
+    const op = e.target.closest('[data-op]');
+    if (card && op) editCard(Number(card.dataset.i), op.dataset.op);
+    else if (card) editCard(Number(card.dataset.i));
+  });
+}
+
+function editCard(i, op) {
+  const isNew = i < 0;
+  const list = state.cast.characters;
+  if (!isNew && op === 'del') {
+    if (!confirm('删除角色「' + list[i].name + '」？')) return;
+    const next = list.slice(); next.splice(i, 1);
+    return saveCast(next);
+  }
+  const c = isNew ? { name: '', aliases: [], desc: '' } : list[i];
+  const body = `
+    <div class="field">
+      <label>名称</label><input id="c_name" value="${esc(c.name)}">
+      <label>别名（用 / 或 , 分隔）</label><input id="c_alias" value="${esc((c.aliases || []).join(' / '))}">
+      <label>简介</label><textarea id="c_desc">${esc(c.desc || '')}</textarea>
+    </div>`;
+  showSheet(isNew ? '新增角色' : '编辑角色', body, [
+    { text: '取消', act: closeSheet },
+    {
+      text: '保存', cls: 'primary', act: () => {
+        const name = $('#c_name').value.trim();
+        if (!name) return alert('名称不能为空');
+        const aliases = $('#c_alias').value.split(/[\/,，]/).map((s) => s.trim()).filter(Boolean);
+        const desc = $('#c_desc').value;
+        const next = list.slice();
+        const card = { name, aliases: aliases.filter((a) => a !== name), desc };
+        if (isNew) next.push(card); else next[i] = Object.assign({}, list[i], card);
+        closeSheet(); saveCast(next);
+      }
+    },
+  ]);
+}
+
+async function saveCast(list) {
+  try {
+    const r = await sendJSON('/api/cast', 'PUT', { work: state.work, data: { characters: list, settings: state.cast.settings || [] } });
+    state.cast = r;
+    renderCast();
+  } catch (e) { alert('保存失败：' + e.message); }
+}
+
+// ---------- 搜索 ----------
+function renderSearch() {
+  $('#main').innerHTML = `
+    <div class="searchbar">
+      <input id="q" placeholder="搜索正文 / 章节名" value="${esc(state.query)}" enterkeyhint="search">
+      <button id="go">搜索</button>
+    </div>
+    <div id="sres"></div>`;
+  const run = doSearch;
+  $('#go').onclick = run;
+  $('#q').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.target.blur(); run(); } });
+  if (state.searchRes) renderSearchRes();
+}
+
+async function doSearch() {
+  const q = $('#q').value.trim();
+  state.query = q;
+  if (!q) { state.searchRes = null; $('#sres').innerHTML = ''; return; }
+  $('#sres').innerHTML = '<div class="loading">搜索中…</div>';
+  try { state.searchRes = await getJSON('/api/search?work=' + encodeURIComponent(state.work) + '&q=' + encodeURIComponent(q)); }
+  catch (e) { $('#sres').innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+  renderSearchRes();
+}
+
+function renderSearchRes() {
+  const r = state.searchRes || { chapters: [], hits: [], outline: [], cast: [] };
+  const hl = (t) => esc(t).replace(new RegExp('(' + state.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<span class="hitmark">$1</span>');
+  let html = '';
+  if (r.chapters && r.chapters.length) {
+    html += '<div class="vol">章节名匹配</div>';
+    html += r.chapters.map((c) => `<div class="row" data-id="${esc(c.id)}"><div class="t">${hl(c.title)}</div><div class="meta">${esc(c.volume)}</div></div>`).join('');
+  }
+  if (r.hits && r.hits.length) {
+    html += '<div class="vol">正文匹配 ' + r.hits.length + ' 处</div>';
+    html += r.hits.map((h) => `<div class="row" data-id="${esc(h.id)}"><div style="flex:1;min-width:0"><div class="t">${esc(h.title)} <span class="meta">:${h.line}</span></div><div class="hittext">${hl(h.text)}</div></div></div>`).join('');
+  }
+  if (r.outline && r.outline.length) {
+    html += '<div class="vol">大纲匹配 ' + r.outline.length + ' 处</div>';
+    html += r.outline.map((h) => `<div class="row" data-goto="outline"><div style="flex:1;min-width:0"><div class="t"><span class="meta">第 ${h.line} 行</span></div><div class="hittext">${hl(h.text)}</div></div></div>`).join('');
+  }
+  if (r.cast && r.cast.length) {
+    html += '<div class="vol">角色 / 设定匹配 ' + r.cast.length + ' 处</div>';
+    html += r.cast.map((h) => `<div class="row" data-goto="cast"><div style="flex:1;min-width:0"><div class="t">${hl(h.name)} <span class="meta">${esc(h.field)}</span></div><div class="hittext">${hl(h.text)}</div></div></div>`).join('');
+  }
+  if (!html) html = '<div class="empty">没有找到「' + esc(state.query) + '」</div>';
+  $('#sres').innerHTML = html;
+  $('#sres').addEventListener('click', (e) => {
+    const ch = e.target.closest('[data-id]');
+    if (ch) return openChapterFromSearch(ch.dataset.id);
+    const go = e.target.closest('[data-goto]');
+    if (go) switchTab(go.dataset.goto);
+  });
+}
+
+function openChapterFromSearch(id) {
+  state.tab = 'search';
+  openChapter(id); // 打开后底部条变为文档工具条，返回会回到搜索
+}
+
+// ---------- 底部抽屉 ----------
+function showSheet(title, innerHTML, actions) {
+  closeSheet();
+  const div = document.createElement('div');
+  div.className = 'sheet';
+  div.innerHTML = `<div class="inner"><h3>${esc(title)}</h3>${innerHTML}<div class="act"></div></div>`;
+  const act = $('.act', div);
+  if (actions && actions.length) {
+    act.innerHTML = actions.map((a, i) => `<button data-a="${i}" class="${a.cls || ''}">${esc(a.text)}</button>`).join('');
+    act.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (b) actions[Number(b.dataset.a)].act(); });
+  } else act.remove();
+  div.addEventListener('click', (e) => { if (e.target === div) closeSheet(); });
+  document.body.appendChild(div);
+}
+function closeSheet() { const s = $('.sheet'); if (s) s.remove(); }
+
+// ---------- Markdown 渲染 ----------
+// 复用桌面端同款实现（web/markdown.js）：浏览/编辑共用同一个渲染器，
+// 大纲的所见即所得编辑再用 window.markdownFromDom 反向序列化回 Markdown。
+const md = (src) => window.renderMarkdown(String(src == null ? '' : src));
+
+// 离开页面前提醒未保存
+window.addEventListener('beforeunload', (e) => { if (state.docDirty) { e.preventDefault(); e.returnValue = ''; } });
+</script>
+</body>
+</html>
